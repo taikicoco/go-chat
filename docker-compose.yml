@@ -1,0 +1,40 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    working_dir: /app/server
+    ports:
+      - "1323:1323"
+    restart: always
+    tty: true
+    environment:
+      ENV: "development"
+      PORT: "1323"
+      DRIVER: "mysql"
+      DATASOURCE: "user:password@tcp(mysql)/db?charset=utf8mb4&parseTime=true"
+    command: ["make", "run"]
+    depends_on:
+      - mysql
+
+  mysql:
+    container_name: mysql
+    platform: linux/amd64
+    image: "mysql:8.0.34"
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: passwordroot
+    volumes:
+      - mysql-db:/var/lib/mysql
+      - ./db/seed:/seed
+
+volumes:
+  mysql-db:
+    driver: local
