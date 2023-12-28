@@ -10,15 +10,17 @@ import (
 	"server/usecase"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/jmoiron/sqlx"
 )
 
 func newResolvers(db *sqlx.DB) *resolver.Resolver {
-	user := usecase.NewUser(db)
-
-	return resolver.NewResolver(user)
+	message := usecase.NewMessage(db)
+	return resolver.NewResolver(message)
 }
+
+const defaultPort = "1323"
 
 func main() {
 	db, err := repository.Open()
@@ -26,7 +28,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	const defaultPort = "1323"
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -35,6 +36,7 @@ func main() {
 	resolver := newResolvers(db)
 	gc := generated.Config{Resolvers: resolver}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(gc))
+	srv.AddTransport(&transport.Websocket{})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

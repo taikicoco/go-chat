@@ -4,12 +4,13 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type User struct {
+type Message struct {
 	db *sqlx.DB
 }
 
-func NewUser(db *sqlx.DB) *User {
-	return &User{
+func NewMessage(db *sqlx.DB) *Message {
+	return &Message{
 		db: db,
 	}
 }
+
