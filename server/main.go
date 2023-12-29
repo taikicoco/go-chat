@@ -5,35 +5,29 @@ import (
 	"net/http"
 	"os"
 	"server/graphql/generated"
+	"server/graphql/generated/model"
 	"server/graphql/resolver"
-	"server/repository"
-	"server/usecase"
+	"sync"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/jmoiron/sqlx"
 )
-
-func newResolvers(db *sqlx.DB) *resolver.Resolver {
-	message := usecase.NewMessage(db)
-	return resolver.NewResolver(message)
-}
 
 const defaultPort = "1323"
 
 func main() {
-	db, err := repository.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
+		log.Printf("Defaulting to port %s", defaultPort)
 		port = defaultPort
 	}
 
-	resolver := newResolvers(db)
+	resolver := &resolver.Resolver{
+		MessageID: make(map[int64][]chan<- *model.Message),
+		Mutex:     sync.Mutex{},
+	}
 	gc := generated.Config{Resolvers: resolver}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(gc))
 	srv.AddTransport(&transport.Websocket{})

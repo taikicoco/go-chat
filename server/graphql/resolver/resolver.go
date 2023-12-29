@@ -1,7 +1,8 @@
 package resolver
 
 import (
-	"server/usecase"
+	"server/graphql/generated/model"
+	"sync"
 )
 
 // This file will not be regenerated automatically.
@@ -9,11 +10,6 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	message       *usecase.Message
-}
-
-func NewResolver(message *usecase.Message) *Resolver {
-	return &Resolver{
-		message:       message,
-	}
+	MessageID map[int64][]chan<- *model.Message
+	Mutex     sync.Mutex
 }

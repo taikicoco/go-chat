@@ -1,6 +1,5 @@
 type Message {
-    id: String!
-    user: String!
+    id: ID!
     text: String!
 }
 
@@ -8,6 +7,10 @@ type Query {
     messages: [Message]
 }
 
+type Mutation {
+    postMessage(id: ID!, text: String!): ID!
+}
+
 type Subscription {
-    messagePosted(user: String!): Message!
+    messagePosted(id: ID!): Message!
 }
