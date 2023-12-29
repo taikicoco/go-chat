@@ -13,6 +13,8 @@ log:
 sh:
 	docker-compose exec backend sh
 
+gqlgen:
+	docker-compose exec backend sh -c "gqlgen generate"
 
 # db
 MYSQL_USER := user

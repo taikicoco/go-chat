@@ -9,11 +9,11 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	user       *usecase.User
+	message       *usecase.Message
 }
 
-func NewResolver(user *usecase.User) *Resolver {
+func NewResolver(message *usecase.Message) *Resolver {
 	return &Resolver{
-		user:       user,	
+		message:       message,
 	}
 }
