@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.36
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/rs/cors v1.10.1
 	github.com/vektah/gqlparser/v2 v2.5.8
 )
 
