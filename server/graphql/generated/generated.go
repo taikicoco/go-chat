@@ -266,17 +266,21 @@ var sources = []*ast.Source{
     text: String!
 }
 
-type Query {
+extend type Query {
     messages: [Message]
 }
 
-type Mutation {
+extend type Mutation {
     postMessage(id: ID!, text: String!): ID!
 }
 
-type Subscription {
+extend type Subscription {
     messagePosted(id: ID!): Message!
 }
+`, BuiltIn: false},
+	{Name: "../../../schema/schema.graphqls", Input: `type Query
+type Mutation
+type Subscription
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)

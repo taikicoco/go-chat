@@ -6,3 +6,12 @@ type Message struct {
 	ID   int64  `json:"id"`
 	Text string `json:"text"`
 }
+
+type Mutation struct {
+}
+
+type Query struct {
+}
+
+type Subscription struct {
+}

@@ -3,14 +3,14 @@ type Message {
     text: String!
 }
 
-type Query {
+extend type Query {
     messages: [Message]
 }
 
-type Mutation {
+extend type Mutation {
     postMessage(id: ID!, text: String!): ID!
 }
 
-type Subscription {
+extend type Subscription {
     messagePosted(id: ID!): Message!
 }
