@@ -13,8 +13,6 @@ services:
     tty: true
     environment:
       ENV: "development"
-      PORT: "1323"
-      DRIVER: "mysql"
-      DATASOURCE: "user:password@tcp(mysql)/db?charset=utf8mb4&parseTime=true"
+      PORT: "1323"     
     command: ["make", "run"]
 
