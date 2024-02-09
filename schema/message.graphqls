@@ -1,6 +1,7 @@
 type Message {
     id: ID!
     text: String!
+    type: String!
 }
 
 extend type Query {
@@ -8,7 +9,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    postMessage(id: ID!, text: String!): ID!
+    postMessage(id: ID!, text: String!): Message!
 }
 
 extend type Subscription {

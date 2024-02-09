@@ -9,8 +9,10 @@ import (
 	"server/graphql/generated/model"
 )
 
+const postStatus = "sent"
+
 // PostMessage is the resolver for the postMessage field.
-func (r *mutationResolver) PostMessage(ctx context.Context, id int64, text string) (int64, error) {
+func (r *mutationResolver) PostMessage(ctx context.Context, id int64, text string) (*model.Message, error) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 	for _, ch := range r.MessageID[int64(id)] {
@@ -19,7 +21,11 @@ func (r *mutationResolver) PostMessage(ctx context.Context, id int64, text strin
 			Text: text,
 		}
 	}
-	return id, nil
+	return &model.Message{
+		ID:   id,
+		Text: text,
+		Type: postStatus,
+	}, nil
 }
 
 // Messages is the resolver for the messages field.

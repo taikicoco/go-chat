@@ -5,6 +5,7 @@ package model
 type Message struct {
 	ID   int64  `json:"id"`
 	Text string `json:"text"`
+	Type string `json:"type"`
 }
 
 type Mutation struct {
