@@ -51,6 +51,7 @@ type ComplexityRoot struct {
 	Message struct {
 		ID   func(childComplexity int) int
 		Text func(childComplexity int) int
+		Type func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -67,7 +68,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	PostMessage(ctx context.Context, id int64, text string) (int64, error)
+	PostMessage(ctx context.Context, id int64, text string) (*model.Message, error)
 }
 type QueryResolver interface {
 	Messages(ctx context.Context) ([]*model.Message, error)
@@ -108,6 +109,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Message.Text(childComplexity), true
+
+	case "Message.type":
+		if e.complexity.Message.Type == nil {
+			break
+		}
+
+		return e.complexity.Message.Type(childComplexity), true
 
 	case "Mutation.postMessage":
 		if e.complexity.Mutation.PostMessage == nil {
@@ -264,19 +272,24 @@ var sources = []*ast.Source{
 	{Name: "../../../schema/message.graphqls", Input: `type Message {
     id: ID!
     text: String!
+    type: String!
 }
 
-type Query {
+extend type Query {
     messages: [Message]
 }
 
-type Mutation {
-    postMessage(id: ID!, text: String!): ID!
+extend type Mutation {
+    postMessage(id: ID!, text: String!): Message!
 }
 
-type Subscription {
+extend type Subscription {
     messagePosted(id: ID!): Message!
 }
+`, BuiltIn: false},
+	{Name: "../../../schema/schema.graphqls", Input: `type Query
+type Mutation
+type Subscription
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -465,6 +478,50 @@ func (ec *executionContext) fieldContext_Message_text(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Message_type(ctx context.Context, field graphql.CollectedField, obj *model.Message) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Message_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Message_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Message",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_postMessage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_postMessage(ctx, field)
 	if err != nil {
@@ -491,9 +548,9 @@ func (ec *executionContext) _Mutation_postMessage(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(*model.Message)
 	fc.Result = res
-	return ec.marshalNID2int64(ctx, field.Selections, res)
+	return ec.marshalNMessage2ᚖserverᚋgraphqlᚋgeneratedᚋmodelᚐMessage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_postMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -503,7 +560,15 @@ func (ec *executionContext) fieldContext_Mutation_postMessage(ctx context.Contex
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Message_id(ctx, field)
+			case "text":
+				return ec.fieldContext_Message_text(ctx, field)
+			case "type":
+				return ec.fieldContext_Message_type(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
 	}
 	defer func() {
@@ -560,6 +625,8 @@ func (ec *executionContext) fieldContext_Query_messages(ctx context.Context, fie
 				return ec.fieldContext_Message_id(ctx, field)
 			case "text":
 				return ec.fieldContext_Message_text(ctx, field)
+			case "type":
+				return ec.fieldContext_Message_type(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -753,6 +820,8 @@ func (ec *executionContext) fieldContext_Subscription_messagePosted(ctx context.
 				return ec.fieldContext_Message_id(ctx, field)
 			case "text":
 				return ec.fieldContext_Message_text(ctx, field)
+			case "type":
+				return ec.fieldContext_Message_type(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -2570,6 +2639,11 @@ func (ec *executionContext) _Message(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "text":
 			out.Values[i] = ec._Message_text(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._Message_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
