@@ -3,9 +3,16 @@
 package model
 
 type Message struct {
-	ID   int64  `json:"id"`
-	Text string `json:"text"`
-	Type string `json:"type"`
+	ChatID int64  `json:"chatId"`
+	UserID int64  `json:"userId"`
+	Text   string `json:"text"`
+	Type   string `json:"type"`
+}
+
+type MessageInput struct {
+	ChatID int64  `json:"chatId"`
+	UserID int64  `json:"userId"`
+	Text   string `json:"text"`
 }
 
 type Mutation struct {
