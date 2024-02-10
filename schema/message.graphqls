@@ -20,5 +20,5 @@ extend type Mutation {
 }
 
 extend type Subscription {
-    messagePosted(chatId: ID!): Message!
+    getMessage(chatId: ID!): Message!
 }

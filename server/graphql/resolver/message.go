@@ -13,7 +13,7 @@ import (
 func (r *mutationResolver) PostMessage(ctx context.Context, input model.MessageInput) (*model.Message, error) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
-	for _, ch := range r.MessageID[int64(input.ChatID)] {
+	for _, ch := range r.ChatID[int64(input.ChatID)] {
 		ch <- &model.Message{
 			ChatID: input.ChatID,
 			Text:   input.Text,
@@ -32,26 +32,28 @@ func (r *queryResolver) Messages(ctx context.Context) ([]*model.Message, error) 
 	return []*model.Message{
 		{
 			ChatID: 1,
+			UserID: 1,
 			Text:   "Hello World",
+			Type:   "send",
 		},
 	}, nil
 }
 
-// MessagePosted is the resolver for the messagePosted field.
-func (r *subscriptionResolver) MessagePosted(ctx context.Context, chatID int64) (<-chan *model.Message, error) {
+// GetMessage is the resolver for the getMessage field.
+func (r *subscriptionResolver) GetMessage(ctx context.Context, chatID int64) (<-chan *model.Message, error) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
 	ch := make(chan *model.Message, 1)
-	r.MessageID[chatID] = append(r.MessageID[chatID], ch)
+	r.ChatID[chatID] = append(r.ChatID[chatID], ch)
 
 	go func() {
 		<-ctx.Done()
 		r.Mutex.Lock()
 		defer r.Mutex.Unlock()
-		for i, c := range r.MessageID[chatID] {
+		for i, c := range r.ChatID[chatID] {
 			if c == ch {
-				r.MessageID[chatID] = append(r.MessageID[chatID][:i], r.MessageID[chatID][i+1:]...)
+				r.ChatID[chatID] = append(r.ChatID[chatID][:i], r.ChatID[chatID][i+1:]...)
 				break
 			}
 		}

@@ -64,7 +64,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		MessagePosted func(childComplexity int, chatID int64) int
+		GetMessage func(childComplexity int, chatID int64) int
 	}
 }
 
@@ -75,7 +75,7 @@ type QueryResolver interface {
 	Messages(ctx context.Context) ([]*model.Message, error)
 }
 type SubscriptionResolver interface {
-	MessagePosted(ctx context.Context, chatID int64) (<-chan *model.Message, error)
+	GetMessage(ctx context.Context, chatID int64) (<-chan *model.Message, error)
 }
 
 type executableSchema struct {
@@ -144,17 +144,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Messages(childComplexity), true
 
-	case "Subscription.messagePosted":
-		if e.complexity.Subscription.MessagePosted == nil {
+	case "Subscription.getMessage":
+		if e.complexity.Subscription.GetMessage == nil {
 			break
 		}
 
-		args, err := ec.field_Subscription_messagePosted_args(context.TODO(), rawArgs)
+		args, err := ec.field_Subscription_getMessage_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Subscription.MessagePosted(childComplexity, args["chatId"].(int64)), true
+		return e.complexity.Subscription.GetMessage(childComplexity, args["chatId"].(int64)), true
 
 	}
 	return 0, false
@@ -301,7 +301,7 @@ extend type Mutation {
 }
 
 extend type Subscription {
-    messagePosted(chatId: ID!): Message!
+    getMessage(chatId: ID!): Message!
 }
 `, BuiltIn: false},
 	{Name: "../../../schema/schema.graphqls", Input: `type Query
@@ -345,7 +345,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Subscription_messagePosted_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Subscription_getMessage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int64
@@ -819,8 +819,8 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Subscription_messagePosted(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
-	fc, err := ec.fieldContext_Subscription_messagePosted(ctx, field)
+func (ec *executionContext) _Subscription_getMessage(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_getMessage(ctx, field)
 	if err != nil {
 		return nil
 	}
@@ -833,7 +833,7 @@ func (ec *executionContext) _Subscription_messagePosted(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().MessagePosted(rctx, fc.Args["chatId"].(int64))
+		return ec.resolvers.Subscription().GetMessage(rctx, fc.Args["chatId"].(int64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -864,7 +864,7 @@ func (ec *executionContext) _Subscription_messagePosted(ctx context.Context, fie
 	}
 }
 
-func (ec *executionContext) fieldContext_Subscription_messagePosted(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Subscription_getMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Subscription",
 		Field:      field,
@@ -891,7 +891,7 @@ func (ec *executionContext) fieldContext_Subscription_messagePosted(ctx context.
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Subscription_messagePosted_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Subscription_getMessage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2905,8 +2905,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
-	case "messagePosted":
-		return ec._Subscription_messagePosted(ctx, fields[0])
+	case "getMessage":
+		return ec._Subscription_getMessage(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
