@@ -9,10 +9,9 @@ type Message struct {
 	Type   string `json:"type"`
 }
 
-type MessageInput struct {
-	ChatID int64  `json:"chatId"`
-	UserID int64  `json:"userId"`
-	Text   string `json:"text"`
+type MessageSubscriptionInput struct {
+	ChatID int64 `json:"chatId"`
+	UserID int64 `json:"userId"`
 }
 
 type Mutation struct {
@@ -22,4 +21,10 @@ type Query struct {
 }
 
 type Subscription struct {
+}
+
+type PostMessageInput struct {
+	ChatID int64  `json:"chatId"`
+	UserID int64  `json:"userId"`
+	Text   string `json:"text"`
 }

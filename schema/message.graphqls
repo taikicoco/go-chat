@@ -9,16 +9,21 @@ extend type Query {
     messages: [Message]
 }
 
-input MessageInput {
+input postMessageInput {
     chatId: ID!
     userId: ID!
     text: String!
 }
 
 extend type Mutation {
-    postMessage(input: MessageInput!): Message!
+    postMessage(input: postMessageInput!): Message!
+}
+
+input MessageSubscriptionInput {
+    chatId: ID!
+    userId: ID!
 }
 
 extend type Subscription {
-    getMessage(chatId: ID!): Message!
+    getMessage(input: MessageSubscriptionInput!): Message!
 }
