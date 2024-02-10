@@ -9,22 +9,21 @@ import (
 	"server/graphql/generated/model"
 )
 
-const postStatus = "sent"
-
 // PostMessage is the resolver for the postMessage field.
-func (r *mutationResolver) PostMessage(ctx context.Context, id int64, text string) (*model.Message, error) {
+func (r *mutationResolver) PostMessage(ctx context.Context, input model.MessageInput) (*model.Message, error) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
-	for _, ch := range r.MessageID[int64(id)] {
+	for _, ch := range r.MessageID[int64(input.ChatID)] {
 		ch <- &model.Message{
-			ID:   id,
-			Text: text,
+			ChatID: input.ChatID,
+			Text:   input.Text,
 		}
 	}
+	const postStatus = "sent"
 	return &model.Message{
-		ID:   id,
-		Text: text,
-		Type: postStatus,
+		ChatID: input.ChatID,
+		Text:   input.Text,
+		Type:   postStatus,
 	}, nil
 }
 
@@ -32,27 +31,27 @@ func (r *mutationResolver) PostMessage(ctx context.Context, id int64, text strin
 func (r *queryResolver) Messages(ctx context.Context) ([]*model.Message, error) {
 	return []*model.Message{
 		{
-			ID:   1,
-			Text: "Hello World",
+			ChatID: 1,
+			Text:   "Hello World",
 		},
 	}, nil
 }
 
 // MessagePosted is the resolver for the messagePosted field.
-func (r *subscriptionResolver) MessagePosted(ctx context.Context, id int64) (<-chan *model.Message, error) {
+func (r *subscriptionResolver) MessagePosted(ctx context.Context, chatID int64) (<-chan *model.Message, error) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
 	ch := make(chan *model.Message, 1)
-	r.MessageID[id] = append(r.MessageID[id], ch)
+	r.MessageID[chatID] = append(r.MessageID[chatID], ch)
 
 	go func() {
 		<-ctx.Done()
 		r.Mutex.Lock()
 		defer r.Mutex.Unlock()
-		for i, c := range r.MessageID[id] {
+		for i, c := range r.MessageID[chatID] {
 			if c == ch {
-				r.MessageID[id] = append(r.MessageID[id][:i], r.MessageID[id][i+1:]...)
+				r.MessageID[chatID] = append(r.MessageID[chatID][:i], r.MessageID[chatID][i+1:]...)
 				break
 			}
 		}
