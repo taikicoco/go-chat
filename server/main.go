@@ -26,7 +26,7 @@ func main() {
 	}
 
 	resolver := &resolver.Resolver{
-		MessageID: make(map[int64][]chan<- *model.Message),
+		ChatID: make(map[int64][]chan<- *model.Message),
 		Mutex:     sync.Mutex{},
 	}
 	gc := generated.Config{Resolvers: resolver}

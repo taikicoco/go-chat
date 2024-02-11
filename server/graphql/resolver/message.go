@@ -9,22 +9,22 @@ import (
 	"server/graphql/generated/model"
 )
 
-const postStatus = "sent"
-
 // PostMessage is the resolver for the postMessage field.
-func (r *mutationResolver) PostMessage(ctx context.Context, id int64, text string) (*model.Message, error) {
+func (r *mutationResolver) PostMessage(ctx context.Context, input model.PostMessageInput) (*model.Message, error) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
-	for _, ch := range r.MessageID[int64(id)] {
+	for _, ch := range r.ChatID[int64(input.ChatID)] {
 		ch <- &model.Message{
-			ID:   id,
-			Text: text,
+			ChatID: input.ChatID,
+			UserID: input.UserID,
+			Text:   input.Text,
 		}
 	}
+	const postStatus = "sent"
 	return &model.Message{
-		ID:   id,
-		Text: text,
-		Type: postStatus,
+		ChatID: input.ChatID,
+		Text:   input.Text,
+		Type:   postStatus,
 	}, nil
 }
 
@@ -32,27 +32,34 @@ func (r *mutationResolver) PostMessage(ctx context.Context, id int64, text strin
 func (r *queryResolver) Messages(ctx context.Context) ([]*model.Message, error) {
 	return []*model.Message{
 		{
-			ID:   1,
-			Text: "Hello World",
+			ChatID: 1,
+			UserID: 1,
+			Text:   "Hello World",
+			Type:   "send",
 		},
 	}, nil
 }
 
-// MessagePosted is the resolver for the messagePosted field.
-func (r *subscriptionResolver) MessagePosted(ctx context.Context, id int64) (<-chan *model.Message, error) {
+// GetMessage is the resolver for the getMessage field.
+func (r *subscriptionResolver) GetMessage(ctx context.Context, chatID int64, userID int64) (<-chan *model.Message, error) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
 	ch := make(chan *model.Message, 1)
-	r.MessageID[id] = append(r.MessageID[id], ch)
+	message := <-ch
+	MuserID := message.UserID
+	if MuserID != userID {
+		return nil, nil
+	}
 
+	r.ChatID[chatID] = append(r.ChatID[chatID], ch)
 	go func() {
 		<-ctx.Done()
 		r.Mutex.Lock()
 		defer r.Mutex.Unlock()
-		for i, c := range r.MessageID[id] {
+		for i, c := range r.ChatID[chatID] {
 			if c == ch {
-				r.MessageID[id] = append(r.MessageID[id][:i], r.MessageID[id][i+1:]...)
+				r.ChatID[chatID] = append(r.ChatID[chatID][:i], r.ChatID[chatID][i+1:]...)
 				break
 			}
 		}

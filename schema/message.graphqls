@@ -1,5 +1,6 @@
 type Message {
-    id: ID!
+    chatId: ID!
+    userId: ID!
     text: String!
     type: String!
 }
@@ -8,10 +9,16 @@ extend type Query {
     messages: [Message]
 }
 
+input postMessageInput {
+    chatId: ID!
+    userId: ID!
+    text: String!
+}
+
 extend type Mutation {
-    postMessage(id: ID!, text: String!): Message!
+    postMessage(input: postMessageInput!): Message!
 }
 
 extend type Subscription {
-    messagePosted(id: ID!): Message!
+    getMessage(chatId: ID!, userId: ID!): Message!
 }
