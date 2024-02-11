@@ -9,11 +9,6 @@ type Message struct {
 	Type   string `json:"type"`
 }
 
-type MessageSubscriptionInput struct {
-	ChatID int64 `json:"chatId"`
-	UserID int64 `json:"userId"`
-}
-
 type Mutation struct {
 }
 

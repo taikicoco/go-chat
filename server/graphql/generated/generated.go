@@ -64,7 +64,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		GetMessage func(childComplexity int, input model.MessageSubscriptionInput) int
+		GetMessage func(childComplexity int, chatID int64, userID int64) int
 	}
 }
 
@@ -75,7 +75,7 @@ type QueryResolver interface {
 	Messages(ctx context.Context) ([]*model.Message, error)
 }
 type SubscriptionResolver interface {
-	GetMessage(ctx context.Context, input model.MessageSubscriptionInput) (<-chan *model.Message, error)
+	GetMessage(ctx context.Context, chatID int64, userID int64) (<-chan *model.Message, error)
 }
 
 type executableSchema struct {
@@ -154,7 +154,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Subscription.GetMessage(childComplexity, args["input"].(model.MessageSubscriptionInput)), true
+		return e.complexity.Subscription.GetMessage(childComplexity, args["chatId"].(int64), args["userId"].(int64)), true
 
 	}
 	return 0, false
@@ -164,7 +164,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputMessageSubscriptionInput,
 		ec.unmarshalInputpostMessageInput,
 	)
 	first := true
@@ -301,13 +300,8 @@ extend type Mutation {
     postMessage(input: postMessageInput!): Message!
 }
 
-input MessageSubscriptionInput {
-    chatId: ID!
-    userId: ID!
-}
-
 extend type Subscription {
-    getMessage(input: MessageSubscriptionInput!): Message!
+    getMessage(chatId: ID!, userId: ID!): Message!
 }
 `, BuiltIn: false},
 	{Name: "../../../schema/schema.graphqls", Input: `type Query
@@ -354,15 +348,24 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Subscription_getMessage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.MessageSubscriptionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNMessageSubscriptionInput2serverᚋgraphqlᚋgeneratedᚋmodelᚐMessageSubscriptionInput(ctx, tmp)
+	var arg0 int64
+	if tmp, ok := rawArgs["chatId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("chatId"))
+		arg0, err = ec.unmarshalNID2int64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["chatId"] = arg0
+	var arg1 int64
+	if tmp, ok := rawArgs["userId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+		arg1, err = ec.unmarshalNID2int64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg1
 	return args, nil
 }
 
@@ -839,7 +842,7 @@ func (ec *executionContext) _Subscription_getMessage(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().GetMessage(rctx, fc.Args["input"].(model.MessageSubscriptionInput))
+		return ec.resolvers.Subscription().GetMessage(rctx, fc.Args["chatId"].(int64), fc.Args["userId"].(int64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2677,40 +2680,6 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputMessageSubscriptionInput(ctx context.Context, obj interface{}) (model.MessageSubscriptionInput, error) {
-	var it model.MessageSubscriptionInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"chatId", "userId"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "chatId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("chatId"))
-			data, err := ec.unmarshalNID2int64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ChatID = data
-		case "userId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-			data, err := ec.unmarshalNID2int64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.UserID = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputpostMessageInput(ctx context.Context, obj interface{}) (model.PostMessageInput, error) {
 	var it model.PostMessageInput
 	asMap := map[string]interface{}{}
@@ -3320,11 +3289,6 @@ func (ec *executionContext) marshalNMessage2ᚖserverᚋgraphqlᚋgeneratedᚋmo
 		return graphql.Null
 	}
 	return ec._Message(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNMessageSubscriptionInput2serverᚋgraphqlᚋgeneratedᚋmodelᚐMessageSubscriptionInput(ctx context.Context, v interface{}) (model.MessageSubscriptionInput, error) {
-	res, err := ec.unmarshalInputMessageSubscriptionInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

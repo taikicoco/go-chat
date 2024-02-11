@@ -19,11 +19,6 @@ extend type Mutation {
     postMessage(input: postMessageInput!): Message!
 }
 
-input MessageSubscriptionInput {
-    chatId: ID!
-    userId: ID!
-}
-
 extend type Subscription {
-    getMessage(input: MessageSubscriptionInput!): Message!
+    getMessage(chatId: ID!, userId: ID!): Message!
 }

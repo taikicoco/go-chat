@@ -41,26 +41,25 @@ func (r *queryResolver) Messages(ctx context.Context) ([]*model.Message, error) 
 }
 
 // GetMessage is the resolver for the getMessage field.
-func (r *subscriptionResolver) GetMessage(ctx context.Context, input model.MessageSubscriptionInput) (<-chan *model.Message, error) {
+func (r *subscriptionResolver) GetMessage(ctx context.Context, chatID int64, userID int64) (<-chan *model.Message, error) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
 	ch := make(chan *model.Message, 1)
 	message := <-ch
-	userID := message.UserID
-	if userID != input.UserID {
+	MuserID := message.UserID
+	if MuserID != userID {
 		return nil, nil
 	}
 
-	r.ChatID[input.ChatID] = append(r.ChatID[input.ChatID], ch)
+	r.ChatID[chatID] = append(r.ChatID[chatID], ch)
 	go func() {
 		<-ctx.Done()
 		r.Mutex.Lock()
 		defer r.Mutex.Unlock()
-		for i, c := range r.ChatID[input.ChatID] {
+		for i, c := range r.ChatID[chatID] {
 			if c == ch {
-				r.ChatID[input.ChatID] = append(r.ChatID[input.
-					ChatID][:i], r.ChatID[input.ChatID][i+1:]...)
+				r.ChatID[chatID] = append(r.ChatID[chatID][:i], r.ChatID[chatID][i+1:]...)
 				break
 			}
 		}
