@@ -1,8 +1,9 @@
 package resolver
 
 import (
-	"server/graphql/generated/model"
 	"sync"
+
+	"server/graphql/generated/model"
 )
 
 // This file will not be regenerated automatically.
@@ -11,5 +12,5 @@ import (
 
 type Resolver struct {
 	ChatID map[int64][]chan<- *model.Message
-	Mutex     sync.Mutex
+	Mutex  sync.Mutex
 }

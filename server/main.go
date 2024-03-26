@@ -4,21 +4,20 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"server/graphql/generated"
-	"server/graphql/generated/model"
-	"server/graphql/resolver"
 	"sync"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/rs/cors"
+	"server/graphql/generated"
+	"server/graphql/generated/model"
+	"server/graphql/resolver"
 )
 
 const defaultPort = "1323"
 
 func main() {
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Printf("Defaulting to port %s", defaultPort)
@@ -27,7 +26,7 @@ func main() {
 
 	resolver := &resolver.Resolver{
 		ChatID: make(map[int64][]chan<- *model.Message),
-		Mutex:     sync.Mutex{},
+		Mutex:  sync.Mutex{},
 	}
 	gc := generated.Config{Resolvers: resolver}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(gc))

@@ -1,0 +1,26 @@
+name: go-lint
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: setup go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "server/go.mod"
+
+      - name: Install golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:  
+          working-directory: ./server
+          args: --timeout=3m --config=./.golangci.yml      
