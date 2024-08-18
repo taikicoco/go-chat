@@ -12,6 +12,3 @@ log:
 	docker-compose logs -f
 sh:
 	docker-compose exec backend sh
-
-gqlgen:
-	docker-compose exec backend sh -c "gqlgen generate"
